@@ -525,7 +525,7 @@ def build_document(template_path, items, output_path):
             after_heading = False
 
         elif itype == 'reference':
-            body.append(copy_runs_to_para('MDPI81references', el))
+            body.append(copy_runs_to_para('MDPI32textnoindent', el))
             after_heading = False
 
     # Restore sectPr
