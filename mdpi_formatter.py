@@ -11,7 +11,12 @@ A file picker will open. Select your manuscript and the formatted
 output will be saved next to it as <filename>_MDPI.docx.
 """
 
-import sys, os, re, zipfile, shutil, tempfile
+import sys
+import os
+import re
+import zipfile
+import shutil
+import tempfile
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 
@@ -28,41 +33,41 @@ except ImportError:
 # Register ALL OOXML namespaces so ElementTree preserves them in output
 
 NSMAP = {
-    'wpc':'http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas',
-    'cx':'http://schemas.microsoft.com/office/drawing/2014/chartex',
-    'cx1':'http://schemas.microsoft.com/office/drawing/2015/9/8/chartex',
-    'cx2':'http://schemas.microsoft.com/office/drawing/2015/10/21/chartex',
-    'cx3':'http://schemas.microsoft.com/office/drawing/2016/5/9/chartex',
-    'cx4':'http://schemas.microsoft.com/office/drawing/2016/5/10/chartex',
-    'cx5':'http://schemas.microsoft.com/office/drawing/2016/5/11/chartex',
-    'cx6':'http://schemas.microsoft.com/office/drawing/2016/5/12/chartex',
-    'cx7':'http://schemas.microsoft.com/office/drawing/2016/5/13/chartex',
-    'cx8':'http://schemas.microsoft.com/office/drawing/2016/5/14/chartex',
-    'mc':'http://schemas.openxmlformats.org/markup-compatibility/2006',
-    'aink':'http://schemas.microsoft.com/office/drawing/2016/ink',
-    'am3d':'http://schemas.microsoft.com/office/drawing/2017/model3d',
-    'o':'urn:schemas-microsoft-com:office:office',
-    'oel':'http://schemas.microsoft.com/office/2019/extlst',
-    'r':'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-    'm':'http://schemas.openxmlformats.org/officeDocument/2006/math',
-    'v':'urn:schemas-microsoft-com:vml',
-    'wp14':'http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing',
-    'wp':'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing',
-    'w10':'urn:schemas-microsoft-com:office:word',
-    'w':'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
-    'w14':'http://schemas.microsoft.com/office/word/2010/wordml',
-    'w15':'http://schemas.microsoft.com/office/word/2012/wordml',
-    'w16cex':'http://schemas.microsoft.com/office/word/2018/wordml/cex',
-    'w16cid':'http://schemas.microsoft.com/office/word/2016/wordml/cid',
-    'w16':'http://schemas.microsoft.com/office/word/2018/wordml',
-    'w16du':'http://schemas.microsoft.com/office/word/2023/wordml/word16du',
-    'w16sdtdh':'http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash',
-    'w16sdtfl':'http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock',
-    'w16se':'http://schemas.microsoft.com/office/word/2015/wordml/symex',
-    'wpg':'http://schemas.microsoft.com/office/word/2010/wordprocessingGroup',
-    'wpi':'http://schemas.microsoft.com/office/word/2010/wordprocessingInk',
-    'wne':'http://schemas.microsoft.com/office/word/2006/wordml',
-    'wps':'http://schemas.microsoft.com/office/word/2010/wordprocessingShape',
+    'wpc': 'http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas',
+    'cx': 'http://schemas.microsoft.com/office/drawing/2014/chartex',
+    'cx1': 'http://schemas.microsoft.com/office/drawing/2015/9/8/chartex',
+    'cx2': 'http://schemas.microsoft.com/office/drawing/2015/10/21/chartex',
+    'cx3': 'http://schemas.microsoft.com/office/drawing/2016/5/9/chartex',
+    'cx4': 'http://schemas.microsoft.com/office/drawing/2016/5/10/chartex',
+    'cx5': 'http://schemas.microsoft.com/office/drawing/2016/5/11/chartex',
+    'cx6': 'http://schemas.microsoft.com/office/drawing/2016/5/12/chartex',
+    'cx7': 'http://schemas.microsoft.com/office/drawing/2016/5/13/chartex',
+    'cx8': 'http://schemas.microsoft.com/office/drawing/2016/5/14/chartex',
+    'mc': 'http://schemas.openxmlformats.org/markup-compatibility/2006',
+    'aink': 'http://schemas.microsoft.com/office/drawing/2016/ink',
+    'am3d': 'http://schemas.microsoft.com/office/drawing/2017/model3d',
+    'o': 'urn:schemas-microsoft-com:office:office',
+    'oel': 'http://schemas.microsoft.com/office/2019/extlst',
+    'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+    'm': 'http://schemas.openxmlformats.org/officeDocument/2006/math',
+    'v': 'urn:schemas-microsoft-com:vml',
+    'wp14': 'http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing',
+    'wp': 'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing',
+    'w10': 'urn:schemas-microsoft-com:office:word',
+    'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
+    'w14': 'http://schemas.microsoft.com/office/word/2010/wordml',
+    'w15': 'http://schemas.microsoft.com/office/word/2012/wordml',
+    'w16cex': 'http://schemas.microsoft.com/office/word/2018/wordml/cex',
+    'w16cid': 'http://schemas.microsoft.com/office/word/2016/wordml/cid',
+    'w16': 'http://schemas.microsoft.com/office/word/2018/wordml',
+    'w16du': 'http://schemas.microsoft.com/office/word/2023/wordml/word16du',
+    'w16sdtdh': 'http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash',
+    'w16sdtfl': 'http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock',
+    'w16se': 'http://schemas.microsoft.com/office/word/2015/wordml/symex',
+    'wpg': 'http://schemas.microsoft.com/office/word/2010/wordprocessingGroup',
+    'wpi': 'http://schemas.microsoft.com/office/word/2010/wordprocessingInk',
+    'wne': 'http://schemas.microsoft.com/office/word/2006/wordml',
+    'wps': 'http://schemas.microsoft.com/office/word/2010/wordprocessingShape',
 }
 for prefix, uri in NSMAP.items():
     ET.register_namespace(prefix, uri)
@@ -93,8 +98,10 @@ def _add_rpr(r_el, props):
         return
     rpr = ET.SubElement(r_el, qn('w:rPr'))
     for p in props:
-        if p in ('b', 'bi'): ET.SubElement(rpr, qn('w:b'))
-        if p in ('i', 'bi'): ET.SubElement(rpr, qn('w:i'))
+        if p in ('b', 'bi'):
+            ET.SubElement(rpr, qn('w:b'))
+        if p in ('i', 'bi'):
+            ET.SubElement(rpr, qn('w:i'))
         if p == 'sub':
             va = ET.SubElement(rpr, qn('w:vertAlign'))
             va.set(qn('w:val'), 'subscript')
@@ -125,9 +132,12 @@ def make_styled_para(style_id, bold=False, italic=False, text=''):
     ET.SubElement(ppr, qn('w:pStyle')).set(qn('w:val'), style_id)
     r = ET.SubElement(p, qn('w:r'))
     props = []
-    if bold: props.append('b')
-    if italic: props.append('i')
-    if props: _add_rpr(r, props)
+    if bold:
+        props.append('b')
+    if italic:
+        props.append('i')
+    if props:
+        _add_rpr(r, props)
     _make_t(r, text)
     return p
 
@@ -200,22 +210,28 @@ def build_mdpi_table(src_table_element, table_width=7857, indent=2608):
     tbl = ET.Element(qn('w:tbl'))
     tpr = ET.SubElement(tbl, qn('w:tblPr'))
     tw = ET.SubElement(tpr, qn('w:tblW'))
-    tw.set(qn('w:w'), str(table_width)); tw.set(qn('w:type'), 'dxa')
+    tw.set(qn('w:w'), str(table_width))
+    tw.set(qn('w:type'), 'dxa')
     ti = ET.SubElement(tpr, qn('w:tblInd'))
-    ti.set(qn('w:w'), str(indent)); ti.set(qn('w:type'), 'dxa')
+    ti.set(qn('w:w'), str(indent))
+    ti.set(qn('w:type'), 'dxa')
 
     # Three-line borders: thick top, thick bottom
     brd = ET.SubElement(tpr, qn('w:tblBorders'))
     for side in ['top', 'bottom']:
         b = ET.SubElement(brd, qn(f'w:{side}'))
-        b.set(qn('w:val'), 'single'); b.set(qn('w:sz'), '8')
-        b.set(qn('w:space'), '0'); b.set(qn('w:color'), 'auto')
+        b.set(qn('w:val'), 'single')
+        b.set(qn('w:sz'), '8')
+        b.set(qn('w:space'), '0')
+        b.set(qn('w:color'), 'auto')
 
-    tl = ET.SubElement(tpr, qn('w:tblLayout')); tl.set(qn('w:type'), 'fixed')
+    tl = ET.SubElement(tpr, qn('w:tblLayout'))
+    tl.set(qn('w:type'), 'fixed')
     tcm = ET.SubElement(tpr, qn('w:tblCellMar'))
     for side in ['left', 'right']:
         s = ET.SubElement(tcm, qn(f'w:{side}'))
-        s.set(qn('w:w'), '0'); s.set(qn('w:type'), 'dxa')
+        s.set(qn('w:w'), '0')
+        s.set(qn('w:type'), 'dxa')
 
     grid = ET.SubElement(tbl, qn('w:tblGrid'))
     for i in range(ncols):
@@ -235,16 +251,21 @@ def build_mdpi_table(src_table_element, table_width=7857, indent=2608):
             if is_header:
                 tcb = ET.SubElement(tcp, qn('w:tcBorders'))
                 bb = ET.SubElement(tcb, qn('w:bottom'))
-                bb.set(qn('w:val'), 'single'); bb.set(qn('w:sz'), '4')
-                bb.set(qn('w:space'), '0'); bb.set(qn('w:color'), 'auto')
-            va = ET.SubElement(tcp, qn('w:vAlign')); va.set(qn('w:val'), 'center')
+                bb.set(qn('w:val'), 'single')
+                bb.set(qn('w:sz'), '4')
+                bb.set(qn('w:space'), '0')
+                bb.set(qn('w:color'), 'auto')
+            va = ET.SubElement(tcp, qn('w:vAlign'))
+            va.set(qn('w:val'), 'center')
             cp = ET.SubElement(tc, qn('w:p'))
             cppr = ET.SubElement(cp, qn('w:pPr'))
             ET.SubElement(cppr, qn('w:pStyle')).set(qn('w:val'), 'MDPI42tablebody')
             sp = ET.SubElement(cppr, qn('w:spacing'))
-            sp.set(qn('w:line'), '240'); sp.set(qn('w:lineRule'), 'auto')
+            sp.set(qn('w:line'), '240')
+            sp.set(qn('w:lineRule'), 'auto')
             cr = ET.SubElement(cp, qn('w:r'))
-            if is_header: _add_rpr(cr, ['b'])
+            if is_header:
+                _add_rpr(cr, ['b'])
             _make_t(cr, cell_text)
 
     add_row(headers, is_header=True)
@@ -359,7 +380,8 @@ def read_manuscript(manuscript_path):
 
             if ctype == 'references_heading':
                 is_after_refs = True
-                items.append({'type': 'heading1', 'element': child, 'text': info['text']})
+                items.append(
+                    {'type': 'heading1', 'element': child, 'text': info['text']})
                 continue
 
             if in_abstract and ctype == 'paragraph':
@@ -447,7 +469,8 @@ def build_document(template_path, items, output_path):
             title_added = True
 
         if itype == 'abstract':
-            body.append(copy_runs_to_para('MDPI17abstract', el, bold_prefix='Abstract: '))
+            body.append(copy_runs_to_para(
+                'MDPI17abstract', el, bold_prefix='Abstract: '))
             after_heading = False
 
         elif itype == 'keywords':
@@ -480,7 +503,8 @@ def build_document(template_path, items, output_path):
             m = re.match(r'^(Table\s+\d+\.?\s*)', text)
             if m:
                 rest = text[len(m.group(1)):]
-                body.append(make_para('MDPI41tablecaption', rest, bold_prefix=m.group(1)))
+                body.append(make_para('MDPI41tablecaption',
+                            rest, bold_prefix=m.group(1)))
             else:
                 body.append(make_para('MDPI41tablecaption', text))
             after_heading = False
@@ -526,7 +550,8 @@ def build_document(template_path, items, output_path):
                 elif item.filename == 'word/_rels/settings.xml.rels':
                     # Remove broken local file references from template
                     text = data.decode('utf-8')
-                    text = re.sub(r'<Relationship[^>]*Target="file:///[^"]*"[^/]*/>', '', text)
+                    text = re.sub(
+                        r'<Relationship[^>]*Target="file:///[^"]*"[^/]*/>', '', text)
                     zout.writestr(item, text.encode('utf-8'))
                 else:
                     zout.writestr(item, data)
@@ -552,7 +577,8 @@ def _build_author_placeholder():
     ]
     for text, props in parts:
         r = ET.SubElement(p, qn('w:r'))
-        if props: _add_rpr(r, props)
+        if props:
+            _add_rpr(r, props)
         _make_t(r, text)
     return p
 
