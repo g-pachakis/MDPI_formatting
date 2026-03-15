@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Output files
+*_MDPI.docx
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
