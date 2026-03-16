@@ -80,6 +80,7 @@ No other external tools needed — no pandoc, no LaTeX, no LibreOffice.
 3. Extracts the MDPI template's `document.xml` from the `.docx` zip archive
 4. Builds a new `document.xml` with the manuscript content wrapped in MDPI styles
 5. Writes the result back into a copy of the template zip, preserving all headers, footers, fonts, and page settings
+6. Your feedback and contribution is essential. Please report any bugs or preferences you might have
 
 ## License
 
